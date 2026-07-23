@@ -67,12 +67,11 @@ const userSchema = new Schema(
 
 //password encryption.
 
-userSchema.pre("save", async function (next) {
-  if (!this.modified("password")) return next();
+userSchema.pre("save", async function () {
+  //fixed in registration
+  if (!this.isModified("password")) return;
 
-  this.password = bcrypt.hash(this.password, 10);
-
-  next();
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
@@ -93,13 +92,11 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 
-
 userSchema.methods.generateRefreshToken = function () {
   //short lived access token
   return jwt.sign(
     {
       _id: this._id,
-      
     },
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
